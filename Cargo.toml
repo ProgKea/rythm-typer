@@ -1,5 +1,5 @@
 [package]
-name = "rythm-typer"
+name = "typing-test"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 bevy = {version = "0.7.0", features = ["dynamic"]}
+reqwest = {version = "0.11.10", features = ["blocking"]}
