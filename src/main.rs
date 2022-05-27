@@ -1,21 +1,22 @@
 use bevy::app::AppExit;
 use bevy::prelude::*;
+use rand::prelude::*;
+use std::env;
 
 fn main() {
     App::new()
+        .insert_resource(WindowDescriptor {
+            title: "Typing Test".to_string(),
+            resizable: false,
+            width: 800.0,
+            height: 500.0,
+            present_mode: bevy::window::PresentMode::Fifo,
+            ..default()
+        })
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
         .insert_resource(ClearColor(Color::DARK_GRAY))
-        .insert_resource(TargetString(
-            reqwest::blocking::get("https://random-word-api.herokuapp.com/word?number=1")
-                .unwrap()
-                .text()
-                .unwrap(),
-        ))
-        .insert_resource(WindowDescriptor {
-            present_mode: bevy::window::PresentMode::Mailbox,
-            ..default()
-        })
+        .insert_resource(TargetString(get_random_words(env::args().next_back().unwrap().parse::<u32>().unwrap_or(10))))
         .add_system(write_text)
         .add_system(highlight_character.before(write_text))
         .add_system(check_quit)
@@ -28,8 +29,23 @@ struct TargetText;
 #[derive(Component)]
 struct HighlightCharacter;
 
-#[derive(Default)]
 struct TargetString(String);
+
+fn get_random_words(count: u32) -> String {
+    let mut words: Vec<String> = include_str!("1-1000.txt")
+        .split_whitespace()
+        .map(|s| s.to_string() + " ")
+        .collect();
+
+    let mut rng = rand::thread_rng();
+    words.shuffle(&mut rng);
+
+    if count > 999 {
+        words.join("")
+    } else {
+        words[0..=count as usize].join("")
+    }
+}
 
 fn setup(
     mut commands: Commands,
@@ -99,16 +115,15 @@ fn write_text(
     mut target_text: Query<&mut Text, With<TargetText>>,
     mut target_string: ResMut<TargetString>,
     mut char_evr: EventReader<ReceivedCharacter>,
+    mut exit: EventWriter<AppExit>,
 ) {
     for ev in char_evr.iter() {
         if target_string.0.chars().next().unwrap() == ev.char {
             if target_string.0.len() > 1 {
                 target_string.0 = target_string.0.clone().get(1..).unwrap().to_string();
                 target_text.single_mut().sections[0].value = target_string.0.clone();
-            }
-            else {
-                // TODO: end the game and give option to restart
-                todo!();
+            } else {
+                exit.send(AppExit);
             }
         }
     }
