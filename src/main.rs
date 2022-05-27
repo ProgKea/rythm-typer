@@ -7,7 +7,7 @@ fn main() {
     App::new()
         .insert_resource(WindowDescriptor {
             title: "Typing Test".to_string(),
-            resizable: false,
+            resizable: true,
             width: 800.0,
             height: 500.0,
             present_mode: bevy::window::PresentMode::Fifo,
