@@ -1,5 +1,7 @@
 # Typing test
 
+This typing test is similar to <monkeytype.com>.
+
 You can define the word count in the command line:
 
     cargo run --release -- <wordcount>
